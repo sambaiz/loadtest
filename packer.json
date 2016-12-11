@@ -1,0 +1,25 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "ap-northeast-1",
+    "source_ami": "ami-0c11b26d",
+    "instance_type": "t2.micro",
+    "ssh_username": "ec2-user",
+    "ami_name": "loadtest {{timestamp}}"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "wget https://github.com/tsenart/vegeta/releases/download/v6.1.1/vegeta-v6.1.1-linux-amd64.tar.gz",
+      "sudo tar xzf vegeta-v6.1.1-linux-amd64.tar.gz -C /usr/local/bin/",
+      "sudo sh -c \"echo '* hard nofile 65536' >> /etc/security/limits.conf\"",
+      "sudo sh -c \"echo '* soft nofile 65536' >> /etc/security/limits.conf\""
+    ]
+  }]
+}
