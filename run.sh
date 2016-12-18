@@ -10,6 +10,9 @@
 
 # Clean up (after finished or aborted)
 
+INSTANCE_IDS=
+PUBLIC_DNS_NAMES=
+
 cleanup() {
   echo "---- Clean up ----"
   aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
@@ -41,6 +44,12 @@ echo "PUBLIC_DNS_NAMES: $PUBLIC_DNS_NAMES"
 
 echo "---- Run ----"
 
+if [ -n "$RESOURCES_DIR" ]; then
+    for machine in $PUBLIC_DNS_NAMES; do
+        scp -r -i ./LoadTestKeyPare.pem -oStrictHostKeyChecking=no $RESOURCES_DIR ec2-user@$machine:~/
+    done
+fi
+
 export PDSH_SSH_ARGS_APPEND='-i ./LoadTestKeyPare.pem -oStrictHostKeyChecking=no'
 pdsh -l ec2-user -w `echo "$PUBLIC_DNS_NAMES" |  paste -d, -s -` "$VEGETA_CMD > result.bin"
 
@@ -48,4 +57,4 @@ for machine in $PUBLIC_DNS_NAMES; do
   scp -i ./LoadTestKeyPare.pem -oStrictHostKeyChecking=no ec2-user@$machine:~/result.bin $machine
 done
 
-vegeta report -inputs=`echo $PUBLIC_DNS_NAMES |  paste -d, -s -`
+vegeta report -reporter=plot -inputs=`echo $PUBLIC_DNS_NAMES |  paste -d, -s -` > result.html 

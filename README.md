@@ -1,6 +1,6 @@
 # Load test
 
-<!-- [記事](http://sambaiz.net/article/42) -->
+[記事](http://sambaiz.net/article/43)
 
 [tsenart/vegeta](https://github.com/tsenart/vegeta)
 

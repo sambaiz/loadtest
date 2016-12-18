@@ -1,0 +1,4 @@
+GET http://example.com/
+
+POST http://example.com/
+@res/post.json
