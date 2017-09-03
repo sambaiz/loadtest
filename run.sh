@@ -15,7 +15,9 @@ PUBLIC_DNS_NAMES=
 
 cleanup() {
   echo "---- Clean up ----"
-  aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+  if [ -n "${INSTANCE_IDS[0]}" ]; then
+    aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+  fi
   aws ec2 delete-key-pair --key-name LoadTestKeyPare
   rm -f LoadTestKeyPare.pem
   rm $PUBLIC_DNS_NAMES
@@ -32,13 +34,21 @@ chmod 400 LoadTestKeyPare.pem
 
 EC2_RES=`aws ec2 run-instances --image-id $AMI_ID --count $INSTANCE_NUM --instance-type t2.micro --key-name LoadTestKeyPare --security-group-ids $SECURITY_GROUP_IDS --subnet-id $SUBNET_ID`
 INSTANCE_IDS=`echo $EC2_RES | jq -r '.Instances[].InstanceId'`
+
+if [ -z "${INSTANCE_IDS[0]}" ]; then
+ echo "インスタンスの作成に失敗しました"
+ exit 1
+fi
+
 echo "INSTANCE_IDS: $INSTANCE_IDS"
 
 echo "Wait until instance status ok"
 aws ec2 wait instance-status-ok --instance-ids $INSTANCE_IDS
 
 PUBLIC_DNS_NAMES=`aws ec2 describe-instances --instance-ids $INSTANCE_IDS | jq -r '.Reservations[].Instances[].PublicDnsName'`
+
 echo "PUBLIC_DNS_NAMES: $PUBLIC_DNS_NAMES"
+
 
 # Run
 
